@@ -1,19 +1,19 @@
 import os, random, struct
 from Cryptodome.Cipher import AES
+import secrets
 
+def encryptText(key, data, nonce):
+    cipher = AES.new(key.encode("utf-8"), AES.MODE_EAX, nonce = nonce)
+    #nonce = cipher.nonce
+    ciphertext, tag = cipher.encrypt_and_digest(data.encode("utf-8"))
+    return ciphertext
 
-def encryptText(key, data):
-    cipher = AES.new(key, AES.MODE_EAX)
-    nonce = cipher.nonce
-    ciphertext, tag = cipher.encrypt_and_digest(data)
-    return ciphertext, tag, nonce
-
-def decryptText(key, data, tag, nonce):
-    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
+def decryptText(key, data, nonce):
+    cipher = AES.new(key.encode("utf-8"), AES.MODE_EAX, nonce=nonce)
     plaintext = cipher.decrypt(data)
     try:
-        cipher.verify(tag)
-        return plaintext
+        #cipher.verify(tag)
+        return plaintext.decode("utf-8")
     except ValueError:
         print("Key incorrect or message corrupted")
 
@@ -23,7 +23,7 @@ def encryptFile(key, in_filename, out_filename=None, chunksize=64*1024):
         out_filename = in_filename + '.enc'
 
     iv = os.urandom(16)
-    encryptor = AES.new(key, AES.MODE_CBC, iv)
+    encryptor = AES.new(key.encode("utf-8"), AES.MODE_CBC, iv)
     filesize = os.path.getsize(in_filename)
 
     with open(in_filename, 'rb') as infile:
@@ -48,7 +48,7 @@ def decryptFile(key, in_filename, out_filename=None, chunksize=24*1024):
     with open(in_filename, 'rb') as infile:
         origsize = struct.unpack('<Q', infile.read(struct.calcsize('Q')))[0]
         iv = infile.read(16)
-        decryptor = AES.new(key, AES.MODE_CBC, iv)
+        decryptor = AES.new(key.encode("utf-8"), AES.MODE_CBC, iv)
 
         with open(out_filename, 'wb') as outfile:
             while True:
@@ -58,3 +58,6 @@ def decryptFile(key, in_filename, out_filename=None, chunksize=24*1024):
                 outfile.write(decryptor.decrypt(chunk))
 
             outfile.truncate(origsize)
+
+def generateNewKey():
+    return secrets.token_hex(16)
