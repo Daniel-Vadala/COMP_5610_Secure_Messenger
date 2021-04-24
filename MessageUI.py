@@ -120,7 +120,3 @@ class MessageUI(tk.Frame):
         self.textCons.configure(state=NORMAL)
         self.textCons.insert(END, self.userName + ": Uploaded a file: " + fileName)
         self.textCons.configure(state=DISABLED)
-
-root = tk.Tk()
-logIn = MessageUI(userName="Test", master=root)
-logIn.mainloop()
