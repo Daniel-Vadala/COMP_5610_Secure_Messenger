@@ -8,6 +8,12 @@ def encryptText(key, data, nonce):
     ciphertext, tag = cipher.encrypt_and_digest(data.encode("utf-8"))
     return ciphertext
 
+def encryptTextNoNonce(key, data):
+    cipher = AES.new(key.encode("utf-8"), AES.MODE_EAX)
+    nonce = cipher.nonce
+    ciphertext, tag = cipher.encrypt_and_digest(data.encode("utf-8"))
+    return ciphertext, nonce
+
 def decryptText(key, data, nonce):
     cipher = AES.new(key.encode("utf-8"), AES.MODE_EAX, nonce=nonce)
     plaintext = cipher.decrypt(data)
