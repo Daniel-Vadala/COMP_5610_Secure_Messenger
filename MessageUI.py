@@ -1,8 +1,12 @@
 import tkinter as tk
+import socket
+import diffiehelman
+import pickle
 from tkinter import *
 from tkinter import filedialog
 from AESEncryption import encryptText, decryptText, encryptFile, decryptFile
 from config import key
+
 
 class MessageUI(tk.Frame):
     def __init__(self, userName = 'unknown', master=None):
@@ -11,6 +15,40 @@ class MessageUI(tk.Frame):
         self.Window.geometry('1920x1080') 
         self.createWidgets()
         self.userName = userName
+
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # get local machine name
+        self.host = socket.gethostname()
+        self.bob = diffiehelman.DiffieHellman()
+        print(self.bob.publicKey)
+        self.alice = 0
+        self.port = 9999
+        self.buffer = 1024
+        self.s.connect((self.host, self.port))
+        msg = pickle.dumps(self.bob.publicKey)
+        self.s.send(msg)
+
+        self.alice = self.s.recv(self.buffer)
+
+        self.alice = pickle.loads(self.alice)
+
+        self.bob.genKey(self.alice)
+        self.key = self.bob.getKey()
+        print(self.key)
+
+        self.temp = pickle.dumps(self.key) #can't pickle and send in same line
+
+        self.s.send(self.temp)
+
+        self.key2 = self.s.recv(self.buffer)
+
+        self.key2 = pickle.loads(self.key2)
+
+        if (self.key != self.key2):
+            print("system error")
+            self.s.close()
+            raise SystemExit(0)
+
         
     def createWidgets(self):
         self.labelHead = Label(self.Window,
@@ -98,15 +136,30 @@ class MessageUI(tk.Frame):
 
 
     def sendMessage(self):
+
+        message = self.entryMsg.get()
+        encryptedMessage, nonce = encryptText(self.key, message)
+        finalMessage = {"Message": encryptedMessage, "Nonce": nonce, "Username": self.userName}
+        encodedMessage = pickle.dumps(finalMessage)
+        self.s.send(encodedMessage)
         self.textCons.configure(state=NORMAL)
-        self.textCons.insert(END, self.userName + ": " + self.entryMsg.get())
+        self.textCons.insert(END, self.userName + ": " + message)
         self.textCons.configure(state=DISABLED)
         self.entryMsg.delete(0, 'end')
     
-    def recieveMessage(self, usernName, message):
-        self.textCons.configure(state=NORMAL)
-        self.textCons.insert(END, usernName + ": " + message)
-        self.textCons.configure(state=DISABLED)
+    def recieveMessage(self):
+        while True:
+            try:
+                #message = client_socket.recv(BUFSIZ).decode("utf8")
+                message = self.s.recv(self.buffer)
+                message = pickle.loads(message)
+                print(message)
+                # self.textCons.configure(state=NORMAL)
+                # self.textCons.insert(END, usernName + ": " + message)
+                # self.textCons.configure(state=DISABLED)
+            except OSError:  # Possibly client has left the chat.
+                break
+
 
     def uploadFile(self, event=None):
         fileName = filedialog.askopenfilename()

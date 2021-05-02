@@ -2,26 +2,27 @@ import os, random, struct
 from Cryptodome.Cipher import AES
 import secrets
 
-def encryptText(key, data, nonce):
-    cipher = AES.new(key.encode("utf-8"), AES.MODE_EAX, nonce = nonce)
-    #nonce = cipher.nonce
-    ciphertext, tag = cipher.encrypt_and_digest(data.encode("utf-8"))
-    return ciphertext
 
-def encryptTextNoNonce(key, data):
-    cipher = AES.new(key.encode("utf-8"), AES.MODE_EAX)
-    nonce = cipher.nonce
+def encryptText(key, data, nonce=None, encode=False):
+    if(encode):
+        key = key.encode("utf-8")
+    cipher = AES.new(key, AES.MODE_EAX)
+    if(nonce == None):
+        nonce = cipher.nonce
     ciphertext, tag = cipher.encrypt_and_digest(data.encode("utf-8"))
     return ciphertext, nonce
 
-def decryptText(key, data, nonce):
-    cipher = AES.new(key.encode("utf-8"), AES.MODE_EAX, nonce=nonce)
+def decryptText(key, data, nonce, encode=False):
+    if(encode):
+        key = key.encode("utf-8")
+    cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
     plaintext = cipher.decrypt(data)
     try:
         #cipher.verify(tag)
         return plaintext.decode("utf-8")
     except ValueError:
         print("Key incorrect or message corrupted")
+
 
 
 def encryptFile(key, in_filename, out_filename=None, chunksize=64*1024):

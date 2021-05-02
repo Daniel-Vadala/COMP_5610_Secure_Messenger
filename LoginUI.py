@@ -3,7 +3,7 @@ import json
 from tkinter import *
 from functools import partial
 from MessageUI import MessageUI
-from AESEncryption import encryptText, encryptTextNoNonce, decryptText, encryptFile, decryptFile
+from AESEncryption import encryptText, decryptText, encryptFile, decryptFile
 from base64 import b64encode, b64decode
 from config import key
 
@@ -58,7 +58,7 @@ class LoginUI(tk.Frame):
                 decodedNonce = b64decode(logins[userName]["Nonce"])
                 print(decodedPassword)
                 print(decodedNonce)
-                decrypted = decryptText(key, decodedPassword, decodedNonce)
+                decrypted = decryptText(key, decodedPassword, decodedNonce, encode = True)
                 print(decrypted)
                 if(decrypted == password):
                     self.usernameEntry.delete(0, 'end')
@@ -78,7 +78,7 @@ class LoginUI(tk.Frame):
             if(self.usernameEntry.get() in logins.keys()):
                 print("Username already used")
             else:
-                encrypted, nonce = encryptTextNoNonce(key, password)
+                encrypted, nonce = encryptText(key, password, encode = True)
                 encodedPassword = b64encode(encrypted).decode()
                 encodedNonce = b64encode(nonce).decode()
                 logins[userName] = {"Password": encodedPassword, "Nonce": encodedNonce}
