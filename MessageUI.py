@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter import filedialog
 from AESEncryption import encryptText, decryptText, encryptFile, decryptFile
-from config import key, nonce
+from config import key
 
 class MessageUI(tk.Frame):
     def __init__(self, userName = 'unknown', master=None):
