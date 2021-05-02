@@ -34,7 +34,8 @@ while True:
     bob = msg
     temp = pickle.dumps(alice.publicKey)
     clientsocket.send(temp)
-    key = alice.genKey(bob)
+    alice.genKey(bob)
+    key = alice.getKey()
     key2 = clientsocket.recv(buffer)
     key2 = pickle.loads(key2)
     print ("key2 done")

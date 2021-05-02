@@ -10,23 +10,25 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 host = socket.gethostname()
 
 bob = diffiehelman.DiffieHellman()
+print(bob.publicKey)
 alice = 0
 
 port = 9999
 buffer = 1024
 file = 'data.txt'
-myFile = open(file, 'rb')
+#myFile = open(file, 'rb')
 # connection to hostname on the port.
 s.connect((host, port))
 msg = pickle.dumps(bob.publicKey)
 s.send(msg)
 print ("line 1")
 alice = s.recv(buffer)
-print ("line 2")
+print (alice)
 alice = pickle.loads(alice)
-print ("line 3")
-key = bob.genKey(alice)
-print("line 4")
+print (alice)
+bob.genKey(alice)
+key = bob.getKey()
+print(key)
 temp = pickle.dumps(key) #can't pickle and send in same line
 print("line 5")
 s.send(temp)
@@ -40,7 +42,7 @@ if (key != key2):
     s.close()
     raise SystemExit(0)
 print("before encryption")
-msg = AESEncryption.encryptFile(key, msg) #single encryted file send
+msg = AESEncryption.encryptFile(key, file) #single encryted file send
 temp = pickle.dumps(msg)
 s.send(temp)
 print("after encryption")
