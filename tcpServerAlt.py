@@ -4,6 +4,7 @@ import socket
 from threading import Thread
 import pickle
 import diffiehelman
+from AESEncryption import encryptText, decryptText
 
 clients = {}
 addresses = {}
@@ -38,26 +39,16 @@ def accept_incoming_connections():
         if (key != key2):
             client.close()
             raise SystemExit(0)
-        #client.send(bytes("Greetings from the cave!" +
-                          #"Now type your name and press enter!", "utf8"))
-        addresses[client] = client_address
+        addresses[client.getsockname()] = {"Address": client_address, "Key": key, "Client": client } 
         Thread(target=handle_client, args=(client,)).start()
 
 
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
     print("started handler")
-    name = client.recv(buffer)#.decode("utf8")
-    broadcast(name,)
-    #welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.' % name
-    #client.send(bytes(welcome, "utf8"))
-   # msg = "%s has joined the chat!" % name
-    print("first broadcast")
-    #broadcast(bytes(msg, "utf8"))
-    clients[client] = name
     while True:
-        msg = client.recv(buffer)
         print("made it to while loop")
+        msg = client.recv(buffer)
         if msg == bytearray("{quit}", "utf8"):
             client.send(bytes("{quit}", "utf8"))
             client.close()
@@ -66,14 +57,21 @@ def handle_client(client):  # Takes client socket as argument.
             break
 
         elif msg:
-            print("infinite broadcast")
-            broadcast(msg)
+            print(msg)
+            message = pickle.loads(msg)
+            address = client.getsockname()
+            decryptedMessage = decryptText(addresses[address]["Key"], message["Message"], message["Nonce"])
+            if(decryptedMessage):
+                broadcast(decryptedMessage, message["Username"])
 
 
-def broadcast(msg ):  # prefix is for name identification.
+def broadcast(msg, userName = "Unkown"):  # prefix is for name identification.
     """Broadcasts a message to all the clients."""
-    for sock in clients:
-        sock.send( msg)
+    for key in addresses.keys():
+        encryptedMessage, nonce = encryptText(addresses[key]["Key"], msg)
+        finalMessage = {"Message": encryptedMessage, "Nonce": nonce, "Username": userName}
+        encodedMessage = pickle.dumps(finalMessage)
+        addresses[key]["Client"].send(encodedMessage)
 
 
 if __name__ == "__main__":

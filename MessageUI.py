@@ -10,7 +10,7 @@ from threading import Thread
 
 
 class MessageUI(tk.Frame):
-    def __init__(self, userName = 'unknown', master=None):
+    def __init__(self, userName = 'unknown', master=None, serverAddress = None):
         super().__init__(master)
         self.Window = master
         self.Window.geometry('1080x720')
@@ -22,7 +22,6 @@ class MessageUI(tk.Frame):
         # get local machine name
         self.host = socket.gethostname()
         self.bob = diffiehelman.DiffieHellman()
-        print(self.bob.publicKey)
         self.alice = 0
         self.port = 9999
         self.buffer = 1024
@@ -36,7 +35,6 @@ class MessageUI(tk.Frame):
 
         self.bob.genKey(self.alice)
         self.key = self.bob.getKey()
-        print(self.key)
 
         self.temp = pickle.dumps(self.key) #can't pickle and send in same line
 
@@ -155,15 +153,14 @@ class MessageUI(tk.Frame):
     def receiveMessage(self):
         while True:
             try:
-                #message = client_socket.recv(BUFSIZ).decode("utf8")
                 message = self.s.recv(self.buffer)
-                print(message)
                 message = pickle.loads(message)
-                print(message)
-                # self.textCons.configure(state=NORMAL)
-                # self.textCons.insert(END, usernName + ": " + message)
-                # self.textCons.configure(state=DISABLED)
-            except OSError:  # Possibly client has left the chat.
+                decryptedMessage = decryptText(self.key, message["Message"], message["Nonce"])
+                if(decryptedMessage and message["Username"] != self.userName):
+                    self.textCons.configure(state=NORMAL)
+                    self.textCons.insert(END, message["Username"] + ": " + decryptedMessage)
+                    self.textCons.configure(state=DISABLED)
+            except OSError:
                 break
 
 

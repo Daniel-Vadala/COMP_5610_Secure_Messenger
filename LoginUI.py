@@ -46,7 +46,11 @@ class LoginUI(tk.Frame):
         #validateLogin = partial(self.validateLogin, newUsername, newPassword)
 
         #login button
-        newLoginButton = Button(self.Window, text="New Login", command=self.newLogIn).grid(row=4, column=2) 
+        newLoginButton = Button(self.Window, text="New Login", command=self.newLogIn).grid(row=4, column=2)
+
+        self.serverAddressLabel = Label(self.Window, text="Server Address").grid(row=8, column=0)
+        self.serverAddressEntry = Entry(self.Window)
+        self.serverAddressEntry.grid(row=8, column=1)
 
     def validateLogin(self):
         with open('logins.json') as f:
@@ -56,10 +60,7 @@ class LoginUI(tk.Frame):
             if(userName in logins.keys()):
                 decodedPassword = b64decode(logins[userName]["Password"])
                 decodedNonce = b64decode(logins[userName]["Nonce"])
-                print(decodedPassword)
-                print(decodedNonce)
                 decrypted = decryptText(key, decodedPassword, decodedNonce, encode = True)
-                print(decrypted)
                 if(decrypted == password):
                     self.usernameEntry.delete(0, 'end')
                     self.passwordEntry.delete(0, 'end')
@@ -89,7 +90,7 @@ class LoginUI(tk.Frame):
 
     def login(self, userName):
         root2 = Toplevel()
-        app2 = MessageUI(userName=userName, master=root2)
+        app2 = MessageUI(userName=userName, master=root2, serverAddress = self.serverAddressEntry.get())
 
     def updateLogIn(self, logins):
         with open('logins.json', 'w') as f:
