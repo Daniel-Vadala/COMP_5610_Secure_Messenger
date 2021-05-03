@@ -40,9 +40,8 @@ def accept_incoming_connections():
 
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
-    print("started handler")
+    print("Started handler")
     while True:
-        print("made it to while loop")
         msg = client.recv(buffer)
         if msg == bytearray("{quit}", "utf8"):
             client.send(bytes("{quit}", "utf8"))
@@ -52,7 +51,6 @@ def handle_client(client):  # Takes client socket as argument.
             break
 
         elif msg:
-            print(msg)
             message = pickle.loads(msg)
             address = client.getsockname()
             decryptedMessage = decryptText(addresses[message["ClientId"]]["Key"], message["Message"], message["Nonce"])
