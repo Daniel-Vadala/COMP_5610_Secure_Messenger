@@ -6,17 +6,19 @@ from tkinter import *
 from tkinter import filedialog
 from AESEncryption import encryptText, decryptText, encryptFile, decryptFile
 from config import key
+from threading import Thread
 
 
 class MessageUI(tk.Frame):
     def __init__(self, userName = 'unknown', master=None):
         super().__init__(master)
         self.Window = master
-        self.Window.geometry('1920x1080') 
+        self.Window.geometry('1080x720')
         self.createWidgets()
         self.userName = userName
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         # get local machine name
         self.host = socket.gethostname()
         self.bob = diffiehelman.DiffieHellman()
@@ -48,6 +50,9 @@ class MessageUI(tk.Frame):
             print("system error")
             self.s.close()
             raise SystemExit(0)
+        self.receiveThread = Thread(target=self.receiveMessage)
+        self.receiveThread.start()
+
 
         
     def createWidgets(self):
@@ -147,11 +152,12 @@ class MessageUI(tk.Frame):
         self.textCons.configure(state=DISABLED)
         self.entryMsg.delete(0, 'end')
     
-    def recieveMessage(self):
+    def receiveMessage(self):
         while True:
             try:
                 #message = client_socket.recv(BUFSIZ).decode("utf8")
                 message = self.s.recv(self.buffer)
+                print(message)
                 message = pickle.loads(message)
                 print(message)
                 # self.textCons.configure(state=NORMAL)
