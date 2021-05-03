@@ -20,7 +20,7 @@ class MessageUI(tk.Frame):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         # get local machine name
-        self.host = socket.gethostname()
+        self.host = serverAddress if serverAddress else socket.gethostname()
         self.bob = diffiehelman.DiffieHellman()
         self.alice = 0
         self.port = 9999
@@ -36,18 +36,6 @@ class MessageUI(tk.Frame):
         self.bob.genKey(self.alice)
         self.key = self.bob.getKey()
 
-        self.temp = pickle.dumps(self.key) #can't pickle and send in same line
-
-        self.s.send(self.temp)
-
-        self.key2 = self.s.recv(self.buffer)
-
-        self.key2 = pickle.loads(self.key2)
-
-        if (self.key != self.key2):
-            print("system error")
-            self.s.close()
-            raise SystemExit(0)
         self.receiveThread = Thread(target=self.receiveMessage)
         self.receiveThread.start()
 

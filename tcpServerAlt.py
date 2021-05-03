@@ -8,7 +8,9 @@ from AESEncryption import encryptText, decryptText
 
 clients = {}
 addresses = {}
-HOST = socket.gethostname()
+hostname = socket.gethostname()
+local_ip = socket.gethostbyname(hostname)
+HOST = local_ip
 PORT = 9999
 buffer = 1024
 bob = 0
@@ -31,14 +33,7 @@ def accept_incoming_connections():
         client.send(temp)
         alice.genKey(bob)
         key = alice.getKey()
-        key2 = client.recv(buffer)
-        key2 = pickle.loads(key2)
-        print("key2 done")
-        temp = pickle.dumps(key)
-        client.send(temp)
-        if (key != key2):
-            client.close()
-            raise SystemExit(0)
+
         addresses[client.getsockname()] = {"Address": client_address, "Key": key, "Client": client } 
         Thread(target=handle_client, args=(client,)).start()
 
