@@ -2,6 +2,7 @@ import tkinter as tk
 import socket
 import diffiehelman
 import pickle
+import random
 from tkinter import *
 from tkinter import filedialog
 from AESEncryption import encryptText, decryptText, encryptFile, decryptFile
@@ -19,6 +20,8 @@ class MessageUI(tk.Frame):
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        self.clientId = random.randint(0, 10000)
+
         # get local machine name
         self.host = serverAddress if serverAddress else socket.gethostname()
         self.bob = diffiehelman.DiffieHellman()
@@ -26,7 +29,8 @@ class MessageUI(tk.Frame):
         self.port = 9999
         self.buffer = 1024
         self.s.connect((self.host, self.port))
-        msg = pickle.dumps(self.bob.publicKey)
+        msg = {"PublicKey": self.bob.publicKey, "ClientId": self.clientId}
+        msg = pickle.dumps(msg)
         self.s.send(msg)
 
         self.alice = self.s.recv(self.buffer)
@@ -130,7 +134,7 @@ class MessageUI(tk.Frame):
 
         message = self.entryMsg.get()
         encryptedMessage, nonce = encryptText(self.key, message)
-        finalMessage = {"Message": encryptedMessage, "Nonce": nonce, "Username": self.userName}
+        finalMessage = {"Message": encryptedMessage, "Nonce": nonce, "Username": self.userName, "ClientId": self.clientId}
         encodedMessage = pickle.dumps(finalMessage)
         self.s.send(encodedMessage)
         self.textCons.configure(state=NORMAL)
